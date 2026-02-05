@@ -1,0 +1,16 @@
+[project]
+name = "ledger-drift"
+version = "0.1.0"
+description = "Detect silent financial logic drift in code diffs"
+requires-python = ">=3.9"
+
+dependencies = [
+  "typer"
+]
+
+[project.scripts]
+ledger-drift = "ledger_drift.cli:app"
+
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
