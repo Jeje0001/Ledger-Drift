@@ -10,6 +10,7 @@ from ledger_drift.config import load_config
 from ledger_drift.diff_reader import ( get_git_diff, extract_file_diffs, function_changed,)
 from ledger_drift.expression import isolate_expression_change
 from ledger_drift.evaluator import safe_evaluate
+from ledger_drift.scoring import score_drift
 
 app = typer.Typer(no_args_is_help=True)
 
@@ -100,8 +101,6 @@ def init():
 
 @app.command()
 def analyze():
-    
-
     typer.echo("Analyzing repository for financial drift...\n")
 
     config = load_config()
@@ -121,11 +120,10 @@ def analyze():
 
         diff_lines = file_diffs[file_path]
 
-
         if function_changed(diff_lines, function_name):
             typer.echo(f"Detected change in {file_path}::{function_name}")
             any_change = True
-            
+
             expr_change = isolate_expression_change(diff_lines)
 
             if expr_change is None:
@@ -136,6 +134,7 @@ def analyze():
                 continue
 
             old_expr, new_expr = expr_change
+
             context = {
                 "amount": 1000,
                 "price": 1000,
@@ -150,15 +149,20 @@ def analyze():
                 continue
 
             delta = new_value - old_value
+
             if old_value != 0:
-                percent_change=(delta / old_value)
+                percent_change = (delta / old_value) * 100
             else:
-                percent_change=0
+                percent_change = 0
+
             typer.echo("Evaluation:")
             typer.echo(f"  Input context: amount=1000")
             typer.echo(f"  Old result: {old_value}")
             typer.echo(f"  New result: {new_value}")
             typer.echo(f"  Delta: {delta} ({percent_change:.2f}%)")
+
+            severity = score_drift(percent_change, rule["tolerance"])
+            typer.echo(f"Severity: {severity}")
 
     if not any_change:
         typer.echo("No relevant financial changes detected.")
