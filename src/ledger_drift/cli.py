@@ -9,6 +9,7 @@ from ledger_drift.rules import infer_rule_type
 from ledger_drift.config import load_config
 from ledger_drift.diff_reader import ( get_git_diff, extract_file_diffs, function_changed,)
 from ledger_drift.expression import isolate_expression_change
+from ledger_drift.evaluator import safe_evaluate
 
 app = typer.Typer(no_args_is_help=True)
 
@@ -135,9 +136,29 @@ def analyze():
                 continue
 
             old_expr, new_expr = expr_change
-            typer.echo("Expression change:")
-            typer.echo(f"  OLD: {old_expr}")
-            typer.echo(f"  NEW: {new_expr}")
+            context = {
+                "amount": 1000,
+                "price": 1000,
+                "balance": 1000,
+            }
+
+            old_value = safe_evaluate(old_expr, context)
+            new_value = safe_evaluate(new_expr, context)
+
+            if old_value is None or new_value is None:
+                typer.echo("Unable to safely evaluate this change.")
+                continue
+
+            delta = new_value - old_value
+            if old_value != 0:
+                percent_change=(delta / old_value)
+            else:
+                percent_change=0
+            typer.echo("Evaluation:")
+            typer.echo(f"  Input context: amount=1000")
+            typer.echo(f"  Old result: {old_value}")
+            typer.echo(f"  New result: {new_value}")
+            typer.echo(f"  Delta: {delta} ({percent_change:.2f}%)")
 
     if not any_change:
         typer.echo("No relevant financial changes detected.")
