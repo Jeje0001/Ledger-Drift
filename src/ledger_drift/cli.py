@@ -6,7 +6,8 @@ from ledger_drift.heuristics import scan_file_for_money_patterns
 from ledger_drift.context import find_enclosing_function
 from ledger_drift.exit_codes import *
 from ledger_drift.rules import infer_rule_type
-
+from ledger_drift.config import load_config
+from ledger_drift.diff_reader import ( get_git_diff, extract_file_diffs, function_changed,)
 app = typer.Typer(no_args_is_help=True)
 
 
@@ -96,6 +97,31 @@ def init():
 
 @app.command()
 def analyze():
-    """Analyze diffs for financial drift."""
-    typer.echo("Analyzing repository for financial drift...")
-    raise typer.Exit(code=SUCCESS)
+    
+
+    typer.echo("Analyzing repository for financial drift...\n")
+
+    config = load_config()
+    rules = config.get("rules", [])
+
+    diff = get_git_diff()
+    file_diffs = extract_file_diffs(diff)
+
+    any_change = False
+
+    for rule in rules:
+        file_path = rule["file"]
+        function_name = rule["function"]
+
+        if file_path not in file_diffs:
+            continue
+
+        if function_changed(file_diffs[file_path], function_name):
+            typer.echo(f"Detected change in {file_path}::{function_name}")
+            any_change = True
+
+    if not any_change:
+        typer.echo("No relevant financial changes detected.")
+        raise typer.Exit(code=0)
+
+    raise typer.Exit(code=1)
