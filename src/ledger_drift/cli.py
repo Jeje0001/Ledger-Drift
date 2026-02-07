@@ -8,6 +8,8 @@ from ledger_drift.exit_codes import *
 from ledger_drift.rules import infer_rule_type
 from ledger_drift.config import load_config
 from ledger_drift.diff_reader import ( get_git_diff, extract_file_diffs, function_changed,)
+from ledger_drift.expression import isolate_expression_change
+
 app = typer.Typer(no_args_is_help=True)
 
 
@@ -116,9 +118,26 @@ def analyze():
         if file_path not in file_diffs:
             continue
 
-        if function_changed(file_diffs[file_path], function_name):
+        diff_lines = file_diffs[file_path]
+
+
+        if function_changed(diff_lines, function_name):
             typer.echo(f"Detected change in {file_path}::{function_name}")
             any_change = True
+            
+            expr_change = isolate_expression_change(diff_lines)
+
+            if expr_change is None:
+                typer.echo(
+                    f"Change detected in {file_path}::{function_name}, "
+                    "but unable to isolate expression safely."
+                )
+                continue
+
+            old_expr, new_expr = expr_change
+            typer.echo("Expression change:")
+            typer.echo(f"  OLD: {old_expr}")
+            typer.echo(f"  NEW: {new_expr}")
 
     if not any_change:
         typer.echo("No relevant financial changes detected.")
