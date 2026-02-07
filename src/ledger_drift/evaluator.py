@@ -10,6 +10,7 @@ ALLOWED_NODES = (
     ast.Div,
     ast.Constant,
     ast.Name,
+    ast.Load,
 )
 
 
