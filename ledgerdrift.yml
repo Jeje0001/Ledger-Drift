@@ -1,3 +1,8 @@
 version: 1
 fail_on_drift: false
-rules: []
+
+rules:
+  - type: fee_standard
+    file: src/tests/fake_pricing.py
+    function: calculate_fee
+    tolerance: 0.02
