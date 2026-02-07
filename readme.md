@@ -2,7 +2,7 @@
 
 Ledger Drift is a local CLI tool that detects unintended financial logic changes in code diffs.
 
-It is designed to catch silent money-impacting changes before they are merged.
+It is designed to catch silent money-impacting changes before they are merged
 
 ---
 
