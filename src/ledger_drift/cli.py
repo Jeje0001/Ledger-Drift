@@ -101,6 +101,33 @@ def init():
 
 @app.command()
 def analyze():
+    """
+    Ledger Drift v0.1.0
+    1 HIGH DRIFT detected in monitored functions
+
+    ❌ HIGH FINANCIAL DRIFT
+    ────────────────────
+    Function: calculate_fee
+    File:     src/tests/fake_pricing.py
+    Tolerance: 0.02
+
+    Scenario: amount=1000
+
+    Before:
+    fee = 50.00
+
+    After:
+    fee = 500.00
+
+    Impact:
+    +450.00 per transaction (+900.00%)
+
+    This change exceeds the configured tolerance.
+
+    Severity: DANGEROUS
+    Exit code: 2
+
+    """
     typer.echo("Analyzing repository for financial drift...\n")
 
     config = load_config()
@@ -110,6 +137,7 @@ def analyze():
     file_diffs = extract_file_diffs(diff)
 
     any_change = False
+    findings=[]
 
     for rule in rules:
         file_path = rule["file"]
@@ -121,16 +149,10 @@ def analyze():
         diff_lines = file_diffs[file_path]
 
         if function_changed(diff_lines, function_name):
-            typer.echo(f"Detected change in {file_path}::{function_name}")
             any_change = True
 
             expr_change = isolate_expression_change(diff_lines)
-
             if expr_change is None:
-                typer.echo(
-                    f"Change detected in {file_path}::{function_name}, "
-                    "but unable to isolate expression safely."
-                )
                 continue
 
             old_expr, new_expr = expr_change
@@ -145,7 +167,6 @@ def analyze():
             new_value = safe_evaluate(new_expr, context)
 
             if old_value is None or new_value is None:
-                typer.echo("Unable to safely evaluate this change.")
                 continue
 
             delta = new_value - old_value
@@ -155,17 +176,23 @@ def analyze():
             else:
                 percent_change = 0
 
-            typer.echo("Evaluation:")
-            typer.echo(f"  Input context: amount=1000")
-            typer.echo(f"  Old result: {old_value}")
-            typer.echo(f"  New result: {new_value}")
-            typer.echo(f"  Delta: {delta} ({percent_change:.2f}%)")
-
             severity = score_drift(percent_change, rule["tolerance"])
-            typer.echo(f"Severity: {severity}")
 
-    if not any_change:
+            findings.append({
+                "function": function_name,
+                "file": file_path,
+                "old": old_value,
+                "new": new_value,
+                "delta": delta,
+                "percent": percent_change,
+                "severity": severity,  
+                "tolerance": rule["tolerance"],
+            })
+
+
+    if not findings:
         typer.echo("No relevant financial changes detected.")
         raise typer.Exit(code=0)
+
 
     raise typer.Exit(code=1)
