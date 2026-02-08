@@ -1,3 +1,5 @@
+import json
+
 PRESENTATION_SEVERITY = {
     "LOW": "SAFE",
     "MEDIUM": "WARNING",
@@ -48,8 +50,7 @@ def render_human_report(findings):
         print(f"Tolerance: {finding['tolerance']}")
         print()
 
-        print("Scenario:")
-        print("  amount = 1000")
+        print("Scenario:  amount = 1000")
         print()
 
         print("Before:")
@@ -85,5 +86,56 @@ def render_human_report(findings):
     exit_code = EXIT_CODES[presentation]
 
     print(f"Exit code: {exit_code}")
+
+    return exit_code
+
+def render_json_report(findings):
+    high = 0
+    medium = 0
+    low = 0
+
+    for finding in findings:
+        if finding["severity"] == "HIGH":
+            high += 1
+        elif finding["severity"] == "MEDIUM":
+            medium += 1
+        elif finding["severity"] == "LOW":
+            low += 1
+
+    highest_severity = "LOW"
+
+    for finding in findings:
+        if finding["severity"] == "HIGH":
+            highest_severity = "HIGH"
+            break
+        elif finding["severity"] == "MEDIUM":
+            highest_severity = "MEDIUM"
+
+    presentation = PRESENTATION_SEVERITY[highest_severity]
+    exit_code = EXIT_CODES[presentation]
+
+    output = {
+        "version": "0.1.0",
+        "summary": {
+            "high": high,
+            "medium": medium,
+            "low": low,
+        },
+        "findings": [],
+        "exit_code": exit_code,
+    }
+
+    for finding in findings:
+        output["findings"].append({
+            "function": finding["function"],
+            "file": finding["file"],
+            "severity": finding["severity"],
+            "before": finding["old"],
+            "after": finding["new"],
+            "delta_pct": finding["percent"],
+            "tolerance": finding["tolerance"],
+        })
+
+    print(json.dumps(output, indent=2))
 
     return exit_code

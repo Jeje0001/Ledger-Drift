@@ -11,6 +11,8 @@ from ledger_drift.diff_reader import ( get_git_diff, extract_file_diffs, functio
 from ledger_drift.expression import isolate_expression_change
 from ledger_drift.evaluator import safe_evaluate
 from ledger_drift.scoring import score_drift
+from ledger_drift.presentation import render_human_report,render_json_report
+
 
 app = typer.Typer(no_args_is_help=True)
 
@@ -100,7 +102,7 @@ def init():
 
 
 @app.command()
-def analyze():
+def analyze(json: bool= False):
     """
     Ledger Drift v0.1.0
     1 HIGH DRIFT detected in monitored functions
@@ -128,7 +130,8 @@ def analyze():
     Exit code: 2
 
     """
-    typer.echo("Analyzing repository for financial drift...\n")
+    if not json:
+        typer.echo("Analyzing repository for financial drift...\n")
 
     config = load_config()
     rules = config.get("rules", [])
@@ -195,4 +198,12 @@ def analyze():
         raise typer.Exit(code=0)
 
 
-    raise typer.Exit(code=1)
+    if json:
+        exit_code = render_json_report(findings)
+    else:
+        exit_code = render_human_report(findings)
+
+    raise typer.Exit(code=exit_code)
+
+
+
