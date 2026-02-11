@@ -1,5 +1,5 @@
 version: 1
-fail_on_drift: false
+fail_on_drift: true
 
 rules:
   - type: fee_standard

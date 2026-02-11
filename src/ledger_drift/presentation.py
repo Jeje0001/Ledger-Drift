@@ -13,7 +13,7 @@ EXIT_CODES = {
 }
 
 
-def render_human_report(findings):
+def render_human_report(findings,fail_on_drift):
     version = "0.1.0"
 
     high = 0
@@ -83,13 +83,23 @@ def render_human_report(findings):
             highest_severity = "MEDIUM"
 
     presentation = PRESENTATION_SEVERITY[highest_severity]
-    exit_code = EXIT_CODES[presentation]
 
-    print(f"Exit code: {exit_code}")
+    if fail_on_drift:
+        exit_code = EXIT_CODES[presentation]
+    else:
+        if presentation == "SAFE":
+            exit_code = 0
+        else:
+            exit_code = 1
+    
+    if not fail_on_drift:
+        print("Mode: CI-safe (fail_on_drift = false)")
+    else:
+        print("Mode: Enforcement (fail_on_drift = true)")
 
     return exit_code
 
-def render_json_report(findings):
+def render_json_report(findings,fail_on_drift):
     high = 0
     medium = 0
     low = 0
@@ -112,7 +122,15 @@ def render_json_report(findings):
             highest_severity = "MEDIUM"
 
     presentation = PRESENTATION_SEVERITY[highest_severity]
-    exit_code = EXIT_CODES[presentation]
+
+    if fail_on_drift:
+        exit_code = EXIT_CODES[presentation]
+    else:
+        if presentation == "SAFE":
+            exit_code = 0
+        else:
+            exit_code = 1
+
 
     output = {
         "version": "0.1.0",

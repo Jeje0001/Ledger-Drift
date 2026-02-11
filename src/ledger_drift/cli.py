@@ -141,6 +141,8 @@ def analyze(json: bool= False):
 
     any_change = False
     findings=[]
+    fail_on_drift = config.get("fail_on_drift", False)
+
 
     for rule in rules:
         file_path = rule["file"]
@@ -199,9 +201,9 @@ def analyze(json: bool= False):
 
 
     if json:
-        exit_code = render_json_report(findings)
+        exit_code = render_json_report(findings,fail_on_drift)
     else:
-        exit_code = render_human_report(findings)
+        exit_code = render_human_report(findings,fail_on_drift)
 
     raise typer.Exit(code=exit_code)
 
