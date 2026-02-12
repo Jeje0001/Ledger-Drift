@@ -1,14 +1,7 @@
-Good. We’re not half-doing this.
-
-Here is the **final, tightened, credibility-first, production-ready `README.md`**.
-No hype. No overclaims. Clean. Professional. Honest.
-
-You can paste this directly into `README.md`.
 
 ---
 
-````markdown
-# 💸 Ledger Drift
+#  Ledger Drift
 
 **Silent Financial Logic Drift Detection**
 
@@ -20,77 +13,75 @@ Local-first. CI-ready. No telemetry.
 
 ---
 
-## 🛑 The Problem
+## Why Ledger Drift Exists
 
 Financial bugs are rarely syntax errors.
 
 They are silent logic shifts:
 
-- `0.05` → `0.5`
-- rounding removed
-- interest multiplier changed
-- FX rate applied incorrectly
+* `0.05` → `0.5`
+* rounding removed
+* interest multiplier changed
+* FX rate applied incorrectly
 
-These changes pass linting.  
-They pass unit tests.  
+These changes pass linting.
+They pass unit tests.
 They pass code review.
 
 They quietly alter money.
 
 Ledger Drift answers one question:
 
-> **Did this code change alter financial behavior in a way we didn’t intend?**
+> Did this code change alter financial behavior in a way we didn’t intend?
 
 ---
 
-## ✨ Features
+## What Ledger Drift Does
 
-- **Zero-Config Discovery**  
-  `ledger-drift init` scans your repository for money-handling functions.
-
-- **Static Expression Analysis**  
-  Uses safe expression comparison and deterministic simulation.  
-  No dynamic imports. No execution.
-
-- **Impact Quantification**  
-  Shows exact per-transaction change in dollars and percentage.
-
-- **Configurable Tolerance**  
-  Define acceptable variance per function.
-
-- **CI-Ready Exit Codes**  
-  0 = safe  
-  1 = warning  
-  2 = dangerous
-
-- **Local-Only Operation**  
-  No telemetry. No network calls. No external dependencies.
+* Scans your repository for money-handling functions
+* Detects financial behavior changes in diffs
+* Simulates impact under a deterministic scenario (e.g. `amount=1000`)
+* Quantifies absolute and percentage delta
+* Scores severity against configurable tolerance
+* Produces human-readable financial impact reports
+* Exposes CI-friendly exit codes
+* Supports clean JSON output for automation
 
 ---
 
-## 🚀 Quickstart
+## What Ledger Drift Does NOT Do
 
-### 1. Install
+Ledger Drift is intentionally conservative.
+
+It:
+
+* Does not execute your code
+* Does not import your modules
+* Does not access production data
+* Does not connect to external services
+* Does not guarantee financial correctness
+* Does not replace accounting or financial review
+* Does not send telemetry
+
+Ledger Drift is an early warning system — not an oracle.
+
+---
+
+## Installation
 
 After publishing to PyPI:
 
-```bash
+```
 pip install ledger-drift
-````
-
-For local development:
-
-```bash
-pip install -e .
 ```
 
 ---
 
-### 2. Initialize
+## Quickstart
 
-Run in your repository root:
+Initialize Ledger Drift in your repository:
 
-```bash
+```
 ledger-drift init
 ```
 
@@ -100,27 +91,21 @@ This scans your codebase for money-handling functions and generates:
 ledgerdrift.yml
 ```
 
----
+Analyze changes:
 
-### 3. Analyze
-
-Analyze uncommitted changes:
-
-```bash
+```
 ledger-drift analyze
 ```
 
 Machine-readable output (for CI or automation):
 
-```bash
+```
 ledger-drift analyze --json
 ```
 
 ---
 
-## 📊 Example Output
-
-When drift is detected, Ledger Drift produces a financial impact report:
+## Example Output
 
 ```
 Ledger Drift v0.1.0
@@ -155,13 +140,13 @@ Designed to be Slack-pasteable and CI-readable.
 
 ---
 
-## ⚙️ Configuration (`ledgerdrift.yml`)
+## Configuration
 
-Ledger Drift generates this file during initialization.
+Ledger Drift generates a `ledgerdrift.yml` file during initialization.
 
 Example:
 
-```yaml
+```
 version: 1
 fail_on_drift: false
 
@@ -174,96 +159,58 @@ rules:
 
 ### Configuration Fields
 
-* **version** — configuration schema version
-* **fail_on_drift** — if `true`, dangerous drift returns exit code `2`
-* **rules** — monitored functions and tolerance thresholds
+* `version` — configuration schema version
+* `fail_on_drift` — set to `true` to enforce blocking behavior in CI
+* `rules` — monitored functions and their tolerance thresholds
 
-### CI Behavior
+When `fail_on_drift: true`, dangerous drift returns exit code `2`.
 
-If `fail_on_drift: true`:
-
-* Dangerous drift → exit code `2` (block merge)
-
-If `fail_on_drift: false`:
-
-* Dangerous drift → exit code `1` (warn only)
+When `fail_on_drift: false`, drift returns exit code `1` (CI-safe mode).
 
 ---
 
-## 🛡️ Security Guarantees
+## Exit Code Contract
 
-Ledger Drift is intentionally conservative.
+Severity → Exit Code
 
-It:
+* SAFE → 0
+* WARNING → 1
+* DANGEROUS → 2
 
-* Does not execute your code
-* Does not import your modules
-* Does not access production data
-* Does not connect to external services
-* Does not send telemetry
-* Does not run background processes
-
-It parses and evaluates isolated mathematical expressions only.
-
-If a change cannot be safely evaluated, it fails honestly instead of guessing.
+This allows CI systems to gate deployments automatically.
 
 ---
 
-## 🚦 Exit Code Contract
-
-| Severity  | Exit Code |
-| --------- | --------- |
-| SAFE      | 0         |
-| WARNING   | 1         |
-| DANGEROUS | 2         |
-
-In CI-safe mode (`fail_on_drift: false`), dangerous drift returns exit code `1`.
-
----
-
-## ⚖️ Limitations
-
-Ledger Drift is an early warning system — not an auditor.
-
-It focuses on:
-
-* Static mathematical drift
-* Deterministic simulation
-* Safe expression evaluation
-
-It does **not**:
-
-* Guarantee financial correctness
-* Execute runtime logic
-* Analyze database state
-* Evaluate external API behavior
-* Replace financial review or accounting controls
-
-If logic is too complex for safe static evaluation, Ledger Drift will bail rather than provide false confidence.
-
----
-
-## 🧠 Design Philosophy
+## Design Philosophy
 
 Ledger Drift is intentionally limited.
 
-It solves one problem well:
+It focuses on:
 
-> Detect behavioral drift in financial logic.
+* Financial behavior drift
+* Deterministic simulation
+* Conservative evaluation
+* Honest failure when unsafe
 
-No dashboards.
-No cloud hooks.
-No telemetry.
-No magic.
+It does not attempt:
 
-Just math.
+* Full program analysis
+* Dynamic execution
+* Production monitoring
+* Accounting verification
+
+V1 solves one problem well:
+
+Behavioral drift in financial logic.
 
 ---
 
-## 📄 License
+## License
 
 MIT License
 
-```
 
 
+Commit that.
+Push it.
+That’s Phase 6 foundation done properly.
