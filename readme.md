@@ -208,9 +208,3 @@ Behavioral drift in financial logic.
 ## License
 
 MIT License
-
-
-
-Commit that.
-Push it.
-That’s Phase 6 foundation done properly.
