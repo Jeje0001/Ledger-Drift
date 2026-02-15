@@ -147,13 +147,13 @@ def analyze(json: bool= False):
     for rule in rules:
         file_path = rule["file"]
         function_name = rule["function"]
-
+       
         if file_path not in file_diffs:
             continue
 
         diff_lines = file_diffs[file_path]
 
-        if function_changed(diff_lines, function_name):
+        if function_changed(file_path, diff_lines, function_name):
             any_change = True
 
             expr_change = isolate_expression_change(diff_lines)

@@ -19,15 +19,37 @@ def extract_rhs_expression(line: str) -> str | None:
     return right.strip()
 
 def isolate_expression_change(diff_lines: list[str]) -> tuple[str, str] | None:
-    old_lines, new_lines = extract_changed_lines(diff_lines)
+    old_lines = []
+    new_lines = []
+
+    for line in diff_lines:
+        if line.startswith(('---', '+++', '@@')):
+            continue
+
+        prefix = line[0] if line else ''
+        code = line[1:]
+
+        if prefix == '-':
+            clean_code = code.split('#')[0].strip()
+            if "return" in clean_code or "=" in clean_code:
+                old_lines.append(clean_code)
+
+        elif prefix == '+':
+            clean_code = code.split('#')[0].strip()
+            if "return" in clean_code or "=" in clean_code:
+                new_lines.append(clean_code)
 
     if len(old_lines) != 1 or len(new_lines) != 1:
         return None
 
-    old_expr = extract_rhs_expression(old_lines[0])
-    new_expr = extract_rhs_expression(new_lines[0])
+    def extract_math_expression(code_line: str) -> str:
+        if "return" in code_line:
+            return code_line.split("return", 1)[1].strip()
+        if "=" in code_line:
+            return code_line.rsplit("=", 1)[1].strip()
+        return code_line.strip()
 
-    if old_expr is None or new_expr is None:
-        return None
+    old_expr = extract_math_expression(old_lines[0])
+    new_expr = extract_math_expression(new_lines[0])
 
     return old_expr, new_expr
