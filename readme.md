@@ -1,10 +1,13 @@
-# Ledger Drift
+
+---
+
+#  Ledger Drift
 
 **Silent Financial Logic Drift Detection**
 
 Ledger Drift detects unintended financial behavior changes in code before they merge.
 
-It analyzes diffs, simulates financial impact under a deterministic scenario, and flags tolerance breaches — without executing your code.
+It analyzes Git diffs, simulates the mathematical impact of logic changes, and flags tolerance breaches — without executing your code.
 
 Local-first. CI-ready. No telemetry.
 
@@ -16,31 +19,33 @@ Financial bugs are rarely syntax errors.
 
 They are silent logic shifts:
 
-- `0.05` → `0.5`
-- rounding removed
-- interest multiplier changed
-- FX rate applied incorrectly
+* `0.05` → `0.5`
+* rounding removed
+* interest multiplier changed
+* FX rate applied incorrectly
 
-These changes:
-- pass unit tests
-- pass code review
-- quietly alter money
+These changes pass linting.
+They pass unit tests.
+They pass code review.
+
+They quietly alter money.
 
 Ledger Drift answers one question:
 
-> **Did this code change alter financial behavior in a way we didn’t intend?**
+> Did this code change alter financial behavior in a way we didn’t intend?
 
 ---
 
 ## What Ledger Drift Does
 
-- Detects financial behavior changes in diffs
-- Simulates impact under a deterministic scenario (e.g. `amount=1000`)
-- Quantifies absolute and percentage delta
-- Scores severity against configurable tolerance
-- Produces human-readable financial impact reports
-- Exposes CI-friendly exit codes
-- Supports clean JSON output for automation
+* Scans your repository for money-handling functions
+* Detects financial behavior changes in diffs
+* Simulates impact under a deterministic scenario (e.g. `amount=1000`)
+* Quantifies absolute and percentage delta
+* Scores severity against configurable tolerance
+* Produces human-readable financial impact reports
+* Exposes CI-friendly exit codes
+* Supports clean JSON output for automation
 
 ---
 
@@ -50,61 +55,59 @@ Ledger Drift is intentionally conservative.
 
 It:
 
-- Does not execute your code
-- Does not import your modules
-- Does not access production data
-- Does not connect to external services
-- Does not guarantee financial correctness
-- Does not replace accounting or review
-- Does not send telemetry
+* Does not execute your code
+* Does not import your modules
+* Does not access production data
+* Does not connect to external services
+* Does not guarantee financial correctness
+* Does not replace accounting or financial review
+* Does not send telemetry
 
 Ledger Drift is an early warning system — not an oracle.
 
 ---
 
-## Security Guarantees
-
-Ledger Drift runs entirely locally.
-
-It:
-
-- Makes no network calls
-- Performs no dynamic imports
-- Executes no user code
-- Sends no telemetry
-- Runs no background processes
-
-If a change cannot be safely evaluated, it fails honestly instead of guessing.
-
----
-
 ## Installation
 
-### Local development
+After publishing to PyPI:
 
-```bash
-pip install -e .
+```
+pip install ledger-drift
+```
+
+---
 
 ## Quickstart
 
 Initialize Ledger Drift in your repository:
 
-```bash
+```
 ledger-drift init
+```
 
 This scans your codebase for money-handling functions and generates:
+
+```
 ledgerdrift.yml
+```
 
 Analyze changes:
 
+```
 ledger-drift analyze
-
+```
 
 Machine-readable output (for CI or automation):
 
+```
 ledger-drift analyze --json
+```
 
-Example Output
+---
+
+## Example Output
+
+```
 Ledger Drift v0.1.0
 1 HIGH DRIFT detected in monitored functions
 
@@ -131,16 +134,19 @@ Severity: DANGEROUS
 Mode: CI-safe (fail_on_drift = false)
 
 Exit code: 1
+```
 
+Designed to be Slack-pasteable and CI-readable.
 
-This output is designed to be Slack-pasteable and CI-readable.
+---
 
-Configuration
+## Configuration
 
-Ledger Drift generates a ledgerdrift.yml file during initialization.
+Ledger Drift generates a `ledgerdrift.yml` file during initialization.
 
 Example:
 
+```
 version: 1
 fail_on_drift: false
 
@@ -149,103 +155,56 @@ rules:
     file: src/pricing.py
     function: calculate_fee
     tolerance: 0.02
+```
 
-Configuration Fields
+### Configuration Fields
 
-version — configuration schema version
+* `version` — configuration schema version
+* `fail_on_drift` — set to `true` to enforce blocking behavior in CI
+* `rules` — monitored functions and their tolerance thresholds
 
-fail_on_drift — set to true to enforce blocking behavior in CI
+When `fail_on_drift: true`, dangerous drift returns exit code `2`.
 
-rules — monitored functions and their tolerance thresholds
+When `fail_on_drift: false`, drift returns exit code `1` (CI-safe mode).
 
-When fail_on_drift: true, dangerous drift returns exit code 2.
+---
 
-When fail_on_drift: false, drift returns exit code 1 (CI-safe mode).
+## Exit Code Contract
 
-What Ledger Drift Does
+Severity → Exit Code
 
-Detects financial behavior changes in diffs
+* SAFE → 0
+* WARNING → 1
+* DANGEROUS → 2
 
-Simulates impact under a deterministic scenario (e.g. amount=1000)
+This allows CI systems to gate deployments automatically.
 
-Quantifies absolute and percentage delta
+---
 
-Scores severity against configurable tolerance
-
-Produces human-readable financial impact reports
-
-Exposes CI-friendly exit codes
-
-Supports clean JSON output for automation
-
-What Ledger Drift Does NOT Do
-
-Ledger Drift is intentionally conservative.
-
-It:
-
-Does not execute your code
-
-Does not import your modules
-
-Does not access production data
-
-Does not connect to external services
-
-Does not guarantee financial correctness
-
-Does not replace accounting or financial review
-
-Does not send telemetry
-
-Ledger Drift is an early warning system — not an oracle.
-
-Security Guarantees
-
-Ledger Drift runs entirely locally.
-
-It:
-
-Makes no network calls
-
-Performs no dynamic imports
-
-Executes no user code
-
-Sends no telemetry
-
-Runs no background processes
-
-If a change cannot be safely evaluated, it fails honestly instead of guessing.
-
-Exit Code Contract
-Severity	Exit Code (Enforced Mode)
-SAFE	0
-WARNING	1
-DANGEROUS	2
-
-In CI-safe mode (fail_on_drift: false), dangerous drift returns exit code 1.
-
-Design Philosophy
+## Design Philosophy
 
 Ledger Drift is intentionally limited.
 
 It focuses on:
 
-Financial behavior drift
-
-Deterministic simulation
-
-Conservative evaluation
-
-Honest failure when unsafe
+* Financial behavior drift
+* Deterministic simulation
+* Conservative evaluation
+* Honest failure when unsafe
 
 It does not attempt:
 
-Full program analysis
+* Full program analysis
+* Dynamic execution
+* Production monitoring
+* Accounting verification
 
-Dynamic execution
+V1 solves one problem well:
 
-Production monitoring
+Behavioral drift in financial logic.
 
-Accounting verification
+---
+
+## License
+
+MIT License
